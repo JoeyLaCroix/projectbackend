@@ -1,3 +1,56 @@
-h1{
-    color:skyblue;
+:root{
+    --black: black;
+    --beach: rgb(204, 162, 126);
+    --ocean: rgb(164, 213, 239);
+    --darkblue: #1e4057;
+    --white: white;
+    --tan: rgb(210, 180, 140);
+    --navy: rgb(1, 1, 40);
+}
+body{
+    background-color: var(--ocean);
+}
+#main-header{
+    background-color: var(--darkblue);
+    color: var(--ocean);
+    padding: 1rem;
+    text-align: center;
+    font-size: 2.5em;
+    font-family: fantasy;
+    border: 3px solid var(--black);
+    border-radius: 25px;
+}
+#backend-bottom{
+    background-color: var(--darkblue);
+    color: var(--ocean);
+    padding: 1rem;
+    text-align: center;
+    font-size: 2.5em;
+    font-family: fantasy;
+    border: 3px solid var(--black);
+    border-radius: 25px;
+}
+#backend-bottom a{
+    color:var(--ocean);
+    text-decoration: none;
+    background-color: var(--navy);
+    border-radius: 25px;
+    margin:10px;
+    padding:10px;
+}
+#backend-bottom a:hover{
+    color: var(--white);
+    background-color: var(--black);
+}
+/*___________________________*/
+
+@media only screen and (min-width: 600px) {
+
+    #main-header{
+        display: flex;
+    }
+    #main-header section{
+        flex: 1;
+    }
+
 }
