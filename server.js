@@ -229,27 +229,12 @@ let surfers = [
     }
 ];
 
-let newsurfers = [
-{
-    "id": 1,
-    "img_name": "mesurf.jpg",
-    "name": "Joey LaCroix",
-    "bio": "Joey LaCroix is a professional surfer from the North Shore of Oahu. He has been surfing since he was 5 years old and has won numerous competitions around the world. Joey is known for his aggressive style and fearless approach to big waves. He is sponsored by several major surf brands and is considered one of the top surfers in the world.",
-},
-{
-    "id": 2,
-    "img_name": "colinwright.jpg",
-    "name": "Colin Wright",
-    "bio": "Colin Wright is a professional surfer from the North Shore of Oahu. He has been surfing since he was 5 years old and has won numerous competitions around the world. Colin is known for his aggressive style and fearless approach to big waves. He is sponsored by several major surf brands and is considered one of the top surfers in the world.",
-}
-];
+
 
 app.get("/api/surfers", (req,res)=>{
     res.json(surfers);
 });
-app.get("/api/newsurfers", (req,res)=>{
-    res.json(newsurfers);
-});
+
 app.post("/api/surfers", upload.single("img"), (req, res) => {
     const result = validateSurfer(req.body);
   
