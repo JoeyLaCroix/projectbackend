@@ -252,7 +252,7 @@ app.post("/api/surfers", upload.single("img"), (req, res) => {
     };
   
     if (req.file) {
-      surfer.main_image = req.file.filename;
+      surfer.img_name = req.file.filename;
     }
   
     surfers.push(surfer);
