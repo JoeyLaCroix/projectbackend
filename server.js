@@ -259,6 +259,30 @@ app.post("/api/surfers", upload.single("img"), (req, res) => {
     res.status(200).send(surfer);
   });
 
+  app.put("/api/surfers/:id", upload.single("img"), (req, res) => {
+    let surfer = surfers.find((s) => s._id === parseInt(req.params.id));
+  
+    if (!surfer) res.status(400).send("Surfer with given id was not found");
+  
+    const result = validateSurfer(req.body);
+  
+    if (result.error) {
+      res.status(400).send(result.error.details[0].message);
+      return;
+    }
+  
+    surfer.name = req.body.name;
+    surfer.hometown = req.body.hometown;
+    surfer.surftype = req.body.surftype;
+    surfer.bio = req.body.bio;
+  
+    if (req.file) {
+      surfer.main_image = "images/" + req.file.filename;
+    }
+  
+    res.send(surfer);
+  });
+
   app.delete("/api/surfers/:id", (req, res) => {
     const surfer = surfers.find((s) => s._id === parseInt(req.params.id));
   
