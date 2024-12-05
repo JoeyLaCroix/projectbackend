@@ -41,11 +41,6 @@ mongoose
   
   const Surfer = mongoose.model("Surfer", surferSchema);
 
-
-app.get("/api/surfers", (req,res)=>{
-    res.json(surfers);
-});
-
 app.get("/api/surfers", async (req, res) => {
     const surfers = await Surfer.find();
     res.send(surfers);
