@@ -41,9 +41,30 @@ mongoose
   
   const Surfer = mongoose.model("Surfer", surferSchema);
 
-app.get("/api/surfers", async (req, res) => {
-    const surfers = await Surfer.find();
-    res.send(surfers);
+  app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/index.html");
+  });
+
+  app.get("/api/surfers", async (req, res) => {
+    try {
+      const surfers = await Surfer.find();
+      res.send(surfers);
+    } catch (err) {
+      res.status(500).send("Error fetching data: " + err);
+    }
+  });
+
+  app.get("/api/surfers/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      const surfer = await Surfer.findById(id);
+      if (!surfer) {
+        return res.status(404).send("Surfer not found");
+      }
+      res.send(surfer);
+    } catch (err) {
+      res.status(500).send("Error fetching surfer: " + err);
+    }
   });
 
   app.get("/api/surfers/:id", async (req, res) => {
@@ -95,10 +116,6 @@ app.post("/api/surfers", upload.single("img"), (req, res) => {
         surftype: req.body.surftype,
       };
   
-    surfer.name = req.body.name;
-    surfer.hometown = req.body.hometown;
-    surfer.surftype = req.body.surftype;
-    surfer.bio = req.body.bio;
   
     if (req.file) {
       surfer.main_image = "images/" + req.file.filename;
