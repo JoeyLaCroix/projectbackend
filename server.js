@@ -3,160 +3,167 @@ const cors = require("cors");
 const app = express();
 const Joi = require("joi");
 const multer = require("multer");
+const mongoose = require("mongoose");
+
+// Middleware
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(cors());
-const mongoose = require("mongoose");
 
+// Multer Configuration for File Uploads
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "./public/images/");
-    },
-    filename: (req, file, cb) => {
-      cb(null, file.originalname);
-    },
-  });
-  
+  destination: (req, file, cb) => {
+    cb(null, "./public/images/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
 const upload = multer({ storage: storage });
 
+// MongoDB Connection
 mongoose
-  .connect(
-    "mongodb+srv://JoeyLaCroix:if7mndfYTN3B1CQn@cluster0.oaf8k.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect("mongodb+srv://JoeyLaCroix:if7mndfYTN3B1CQn@cluster0.oaf8k.mongodb.net/?retryWrites=true&w=majority")
   .then(() => {
-    console.log("connected to mongodb");
+    console.log("Connected to MongoDB");
   })
   .catch((error) => {
-    console.log("couldn't connect to mongodb", error);
+    console.log("Couldn't connect to MongoDB", error);
   });
 
-  const surferSchema = new mongoose.Schema({
-    name: String,
-    bio: String,
-    hometown: String,
-    surftype: String,
-    img_name: String,
-  });
-  
-  const Surfer = mongoose.model("Surfer", surferSchema);
+// Mongoose Schema and Model
+const surferSchema = new mongoose.Schema({
+  name: String,
+  bio: String,
+  hometown: String,
+  surftype: String,
+  img_name: String,
+});
 
-  app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
-  });
+const Surfer = mongoose.model("Surfer", surferSchema);
 
-  app.get("/api/surfers", async (req, res) => {
-    try {
-      const surfers = await Surfer.find();
-      res.send(surfers);
-    } catch (err) {
-      res.status(500).send("Error fetching data: " + err);
-    }
-  });
+// Routes
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
-  app.get("/api/surfers/:id", async (req, res) => {
-    const { id } = req.params;
-    try {
-      const surfer = await Surfer.findById(id);
-      if (!surfer) {
-        return res.status(404).send("Surfer not found");
-      }
-      res.send(surfer);
-    } catch (err) {
-      res.status(500).send("Error fetching surfer: " + err);
-    }
-  });
+// Get All Surfers
+app.get("/api/surfers", async (req, res) => {
+  try {
+    const surfers = await Surfer.find();
+    res.send(surfers);
+  } catch (err) {
+    res.status(500).send("Error fetching data: " + err);
+  }
+});
 
-  app.get("/api/surfers/:id", async (req, res) => {
-    const surfer = await Surfer.findOne({ _id: id });
-    res.send(surfer);
-  });
-
-
-app.post("/api/surfers", upload.single("img"), (req, res) => {
-    const result = validateSurfer(req.body);
-  
-    if (result.error) {
-      res.status(400).send(result.error.details[0].message);
-      return;
-    }
-  
-    const surfer = {
-      id: surfers.length + 1,
-      name: req.body.name,
-      hometown: req.body.hometown,
-      surftype: req.body.surftype,
-      bio: req.body.bio,
-    };
-  
-    if (req.file) {
-      surfer.img_name = req.file.filename;
-    }
-  
-    surfers.push(surfer);
-    res.status(200).send(surfer);
-  });
-
-  app.put("/api/surfers/:id", upload.single("img"), async (req, res) => {
-    let surfer = surfers.find((s) => s._id === parseInt(req.params.id));
-  
-    if (!surfer) res.status(400).send("Surfer with given id was not found");
-  
-    const result = validateSurfer(req.body);
-  
-    if (result.error) {
-      res.status(400).send(result.error.details[0].message);
-      return;
-    }
-
-    let fieldsToUpdate = {
-        name: req.body.name,
-        bio: req.body.bio,
-        hometown: req.body.hometown,
-        surftype: req.body.surftype,
-      };
-  
-  
-    if (req.file) {
-      surfer.main_image = "images/" + req.file.filename;
-    }
-
-    const wentThrough = await Surfer.updateOne(
-        { _id: req.params.id },
-        fieldsToUpdate
-      );
-
-      const updatedSurfer = await Surfer.findOne({ _id: req.params.id });
-  res.send(updatedSurfer);
-  
-    res.send(surfer);
-  });
-
-  app.delete("/api/surfers/:id", (req, res) => {
-    const surfer = surfers.find((s) => s._id === parseInt(req.params.id));
-  
+// Get Surfer by ID
+app.get("/api/surfers/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const surfer = await Surfer.findById(id);
     if (!surfer) {
-      res.status(404).send("The surfer with the given id was not found");
+      return res.status(404).send("Surfer not found");
     }
-  
-    const index = surfers.indexOf(surfer);
-    surfers.splice(index, 1);
     res.send(surfer);
-  });
-  
+  } catch (err) {
+    res.status(500).send("Error fetching surfer: " + err);
+  }
+});
 
-const validateSurfer = (surfer) => {
-    const schema = Joi.object({
-      id: Joi.allow(""),
-      name: Joi.string().required(),
-      hometown: Joi.string().required(),
-      surftype: Joi.string().required(),
-      bio: Joi.string().required(),
-    });
-  
-    return schema.validate(surfer);
+// Add a New Surfer
+app.post("/api/surfers", upload.single("img"), async (req, res) => {
+  const result = validateSurfer(req.body);
+
+  if (result.error) {
+    res.status(400).send(result.error.details[0].message);
+    return;
+  }
+
+  const surfer = new Surfer({
+    name: req.body.name,
+    bio: req.body.bio,
+    hometown: req.body.hometown,
+    surftype: req.body.surftype,
+    img_name: req.file ? req.file.filename : null,
+  });
+
+  try {
+    const newSurfer = await surfer.save();
+    res.send(newSurfer);
+  } catch (err) {
+    res.status(500).send("Error saving surfer: " + err);
+  }
+});
+
+// Update a Surfer
+app.put("/api/surfers/:id", upload.single("img"), async (req, res) => {
+  const { id } = req.params;
+  const result = validateSurfer(req.body);
+
+  if (result.error) {
+    res.status(400).send(result.error.details[0].message);
+    return;
+  }
+
+  const fieldsToUpdate = {
+    name: req.body.name,
+    bio: req.body.bio,
+    hometown: req.body.hometown,
+    surftype: req.body.surftype,
   };
 
+  if (req.file) {
+    fieldsToUpdate.img_name = req.file.filename;
+  }
+
+  try {
+    const updatedSurfer = await Surfer.findByIdAndUpdate(id, fieldsToUpdate, {
+      new: true,
+    });
+
+    if (!updatedSurfer) {
+      return res.status(404).send("Surfer not found");
+    }
+
+    res.send(updatedSurfer);
+  } catch (err) {
+    res.status(500).send("Error updating surfer: " + err);
+  }
+});
+
+// Delete a Surfer
+app.delete("/api/surfers/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedSurfer = await Surfer.findByIdAndDelete(id);
+
+    if (!deletedSurfer) {
+      return res.status(404).send("Surfer not found");
+    }
+
+    res.send(deletedSurfer);
+  } catch (err) {
+    res.status(500).send("Error deleting surfer: " + err);
+  }
+});
+
+// Joi Validation Function
+const validateSurfer = (surfer) => {
+  const schema = Joi.object({
+    name: Joi.string().required(),
+    hometown: Joi.string().required(),
+    surftype: Joi.string().required(),
+    bio: Joi.string().required(),
+  });
+
+  return schema.validate(surfer);
+};
+
+// Start the Server
 app.listen(3001, () => {
-    console.log("Listening....")
+  console.log("Listening on port 3001...");
 });
